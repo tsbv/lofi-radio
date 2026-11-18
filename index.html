@@ -3,240 +3,418 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Aurora Focus — помодоро-таймер с анимированным северным сиянием">
-  <title>Aurora Focus</title>
+  <meta name="description" content="Lofi Radio — уютное онлайн-радио с lofi-музыкой на живом фоне">
+  <title>Lofi Radio</title>
   <style>
-    :root {
-      --h1: 160;
-      --h2: 200;
-      --bg: #070b14;
-      --fg: #eaf2ff;
-      --muted: #8a97b3;
-      --accent: hsl(var(--h1) 80% 60%);
-      --accent2: hsl(var(--h2) 80% 60%);
-    }
-    body[data-mode="short"] { --h1: 200; --h2: 260; }
-    body[data-mode="long"] { --h1: 280; --h2: 330; }
     * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; overflow: hidden; }
     body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: "Segoe UI", system-ui, sans-serif;
-      overflow: hidden;
-      transition: --h1 1s;
-    }
-    .aurora {
-      position: fixed;
-      inset: -20%;
-      filter: blur(70px);
-      opacity: 0.55;
-      pointer-events: none;
-    }
-    .aurora span {
-      position: absolute;
-      width: 55vmax;
-      height: 55vmax;
-      border-radius: 50%;
-      transition: background 1.2s;
-      animation: drift 22s ease-in-out infinite alternate;
-    }
-    .aurora span:nth-child(1) { top: 0; left: 5%; background: hsl(var(--h1) 85% 45%); }
-    .aurora span:nth-child(2) { bottom: 0; right: 0; background: hsl(var(--h2) 85% 45%); animation-duration: 28s; animation-direction: alternate-reverse; }
-    .aurora span:nth-child(3) { top: 30%; left: 35%; width: 35vmax; height: 35vmax; background: hsl(calc(var(--h1) + 40) 80% 40%); animation-duration: 18s; }
-    @keyframes drift {
-      from { transform: translate(-8%, -6%) scale(1); }
-      to { transform: translate(10%, 8%) scale(1.25); }
-    }
-    .card {
       position: relative;
-      width: min(92vw, 420px);
-      padding: 32px 28px 28px;
-      border-radius: 32px;
-      background: rgba(10, 16, 30, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(24px);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
-      text-align: center;
+      background: #1a0f14;
+      color: #f3e6e2;
+      font-family: Merriweather, Georgia, "Times New Roman", serif;
+      -webkit-tap-highlight-color: transparent;
     }
-    h1 { margin: 0 0 20px; font-size: 14px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-    .modes { display: flex; gap: 6px; padding: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); margin-bottom: 28px; }
-    .modes button {
-      flex: 1;
-      padding: 10px 6px;
-      border: 0;
-      border-radius: 999px;
-      background: none;
-      color: var(--muted);
-      font: inherit;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
-    }
-    .modes button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); color: var(--fg); }
-    .ring { position: relative; width: 260px; height: 260px; margin: 0 auto 28px; }
-    .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-    .ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
-    .ring .track { stroke: rgba(255, 255, 255, 0.08); }
-    .ring .bar { stroke: url(#grad); stroke-dasharray: 703.7; stroke-dashoffset: 0; transition: stroke-dashoffset 0.4s linear; filter: drop-shadow(0 0 10px var(--accent)); }
-    .time {
-      position: absolute;
-      inset: 0;
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 6px; }
+    .bg { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .shade { position: fixed; inset: 0; background: linear-gradient(rgba(60, 20, 35, 0.45), rgba(40, 15, 30, 0.55)); }
+    body.video-off .bg { display: none; }
+    body.video-off .shade { background: radial-gradient(circle at 50% 30%, #6b2c45, #1a0f14 75%); }
+    .player { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 24px clamp(16px, 4vw, 40px) 56px; }
+    .cover {
+      width: clamp(170px, 26vmin, 300px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: clamp(8px, 1.4vmin, 14px) solid rgba(255, 255, 255, 0.28);
+      background:
+        radial-gradient(circle at 70% 25%, #ffd9a8, transparent 40%),
+        linear-gradient(160deg, #6fa8c9 0 38%, #d98a6a 38% 62%, #8b3f4f 62%);
       display: grid;
       place-items: center;
-      font-size: 62px;
-      font-weight: 200;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
     }
-    .controls { display: flex; justify-content: center; gap: 14px; }
-    .controls button {
-      min-width: 56px;
-      height: 56px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--fg);
-      font: inherit;
-      font-size: 15px;
-      cursor: pointer;
-      transition: transform 0.15s, background 0.3s;
+    .cover svg { width: 100%; height: 100%; }
+    body.playing .cover { animation: bob 6s ease-in-out infinite; }
+    @keyframes bob { 50% { transform: translateY(-6px); } }
+    .title { margin: 0; min-height: 1.4em; max-width: 90vw; overflow: hidden; white-space: nowrap; text-align: center; font-size: clamp(20px, 3.2vmin, 34px); font-weight: 400; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5); }
+    .title span { display: inline-block; }
+    .title.marquee { text-align: left; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+    .title.marquee span { animation: marquee var(--dur, 10s) ease-in-out infinite alternate; }
+    @keyframes marquee { 0%, 12% { transform: translateX(0); } 88%, 100% { transform: translateX(calc(-1 * var(--shift, 0px))); } }
+    .vstep { display: none; }
+    .title.fade { animation: fade 0.8s both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+    .progress { position: relative; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; width: 100%; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.55); overflow: visible; }
+    .progress::before { content: ""; position: absolute; inset: -16px 0; }
+    .progress.muted i, .progress.muted i::after { background: #8a6a70; }
+    .progress i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: #d9534f; }
+    .progress i::after { content: ""; position: absolute; right: -9px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: #d9534f; }
+    .row { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+    .vol { display: flex; align-items: center; justify-content: flex-end; gap: 12px; justify-self: end; }
+    .vol output { width: 4ch; flex: none; text-align: right; font-size: 16px; font-variant-numeric: tabular-nums; opacity: 0.9; }
+    svg.i { width: 30px; height: 30px; fill: currentColor; }
+    .controls { display: flex; align-items: center; gap: 34px; }
+    .play { width: clamp(64px, 10vmin, 96px); aspect-ratio: 1; border-radius: 50%; background: #e8dcd6; color: #4a2a34; display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); transition: transform 0.15s; }
+    .play:hover { transform: scale(1.05); }
+    .play:active { transform: scale(0.96); }
+    .play svg { width: 46%; height: 46%; fill: currentColor; }
+    .play .pause { display: none; }
+    body.playing .play .pause { display: block; }
+    body.playing .play .go { display: none; }
+    .viz { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+    .mode { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: #e8dcd6; opacity: 0.85; transition: opacity 0.2s, background 0.2s; }
+    .mode:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+    .mode svg { width: 30px; height: 30px; fill: currentColor; }
+    .mode[data-on="false"] { opacity: 0.45; }
+    .mode[data-on="false"]:hover { opacity: 0.8; }
+    .live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+    .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #d9534f; }
+    body.playing .live::before { animation: blink 1.6s infinite; }
+    @keyframes blink { 50% { opacity: 0.25; } }
+    .footer { position: fixed; z-index: 2; right: 16px; bottom: 12px; display: flex; gap: 14px; font-size: 13px; opacity: 0.85; }
+    .footer button:hover { text-decoration: underline; }
+    .gate { position: fixed; z-index: 5; inset: 0; display: none; place-items: center; background: rgba(30, 10, 22, 0.55); backdrop-filter: blur(6px); }
+    .gate.show { display: grid; }
+    .gate button { display: flex; flex-direction: column; align-items: center; gap: 14px; font-size: 20px; }
+    .gate .play { width: 96px; }
+    .empty { position: fixed; z-index: 6; left: 50%; top: 20px; transform: translateX(-50%); max-width: 92vw; padding: 10px 18px; border-radius: 12px; background: rgba(0, 0, 0, 0.6); font-size: 14px; text-align: center; display: none; }
+    .empty.show { display: block; }
+    @media (max-width: 600px) {
+      .player { justify-content: center; gap: 18px; padding: 16px 20px 64px; }
+      .cover { width: min(calc(100vw - 24px), 42vh); border-width: 14px; }
+      .title { max-width: 100%; font-size: 26px; }
+      .row { grid-template-columns: 1fr auto 1fr; grid-template-rows: auto auto; row-gap: 16px; }
+      .live { display: none; }
+      .controls { display: contents; }
+      .vol { grid-column: 1 / -1; grid-row: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-self: stretch; gap: 0; }
+      #mute { display: none; }
+      .vol output { display: block; width: auto; text-align: center; font-size: 22px; }
+      .vstep { display: grid; width: 44px; height: 44px; place-items: center; }
+      #volDown { justify-self: start; }
+      #volUp { justify-self: end; }
+      #vizBtn { grid-column: 1; grid-row: 2; justify-self: start; }
+      .play { grid-column: 2; grid-row: 2; width: 92px; }
+      #ringBtn { grid-column: 3; grid-row: 2; justify-self: end; }
+      .mode { width: 48px; height: 48px; }
+      .mode svg { width: 36px; height: 36px; }
+      .footer { left: 16px; justify-content: flex-end; }
     }
-    .controls button:hover { background: rgba(255, 255, 255, 0.14); }
-    .controls button:active { transform: scale(0.94); }
-    .controls .main { min-width: 140px; border: 0; color: #04101a; font-weight: 600; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-    .controls .main:hover { filter: brightness(1.1); background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-    .stats { margin-top: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
-    .dots { display: flex; gap: 6px; }
-    .dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); transition: background 0.4s, box-shadow 0.4s; }
-    .dots i.on { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-    .hint { margin-top: 14px; font-size: 12px; color: var(--muted); opacity: 0.7; }
-    kbd { padding: 1px 6px; border-radius: 5px; background: rgba(255, 255, 255, 0.1); font-family: inherit; }
-    @media (prefers-reduced-motion: reduce) { .aurora span { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
   </style>
 </head>
-<body data-mode="focus">
-  <div class="aurora"><span></span><span></span><span></span></div>
-  <main class="card">
-    <h1>Aurora Focus</h1>
-    <div class="modes" role="group" aria-label="Режим">
-      <button type="button" data-mode="focus" aria-pressed="true">Фокус</button>
-      <button type="button" data-mode="short" aria-pressed="false">Перерыв</button>
-      <button type="button" data-mode="long" aria-pressed="false">Отдых</button>
-    </div>
-    <div class="ring">
-      <svg viewBox="0 0 240 240" aria-hidden="true">
-        <defs>
-          <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" id="g1" stop-color="#3ee8b5"/>
-            <stop offset="1" id="g2" stop-color="#3ec3e8"/>
-          </linearGradient>
-        </defs>
-        <circle class="track" cx="120" cy="120" r="112"/>
-        <circle class="bar" id="bar" cx="120" cy="120" r="112"/>
+<body>
+  <video class="bg" id="bg" src="lofi-background.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+  <div class="shade"></div>
+  <canvas class="viz" id="viz" aria-hidden="true"></canvas>
+  <main class="player">
+    <div class="cover" id="cover" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="100" fill="rgba(0,0,0,0.12)"/>
+        <text x="100" y="116" text-anchor="middle" font-family="'Brush Script MT','Segoe Script',cursive" font-size="78" font-style="italic" fill="#fff4f0" stroke="#d9534f" stroke-width="3" paint-order="stroke">LoFi</text>
       </svg>
-      <div class="time" id="time" role="timer" aria-live="off">25:00</div>
     </div>
-    <div class="controls">
-      <button type="button" id="reset" aria-label="Сбросить">↺</button>
-      <button type="button" class="main" id="toggle">Старт</button>
-      <button type="button" id="skip" aria-label="Пропустить">⏭</button>
+    <h1 class="title" id="title"><span id="titleText">Lofi Radio</span></h1>
+    <div style="width:100%;max-width:1500px;display:flex;flex-direction:column;gap:22px">
+      <div class="progress" role="slider" tabindex="0" aria-label="Громкость" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" id="bar"><i id="fill"></i></div>
+      <div class="row">
+        <div class="live">В эфире</div>
+        <div class="controls">
+          <button type="button" class="mode" id="vizBtn" data-on="true" aria-label="Визуализация: волна" title="Визуализация звука"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h3v6H3zM8 8h3v12H8zM13 4h3v16h-3zM18 11h3v9h-3z"/></svg></button>
+          <button type="button" class="play" id="play" aria-label="Играть / пауза">
+            <svg class="go" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+            <svg class="pause" viewBox="0 0 24 24"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg>
+          </button>
+          <button type="button" class="mode" id="ringBtn" data-on="true" aria-label="Кольцо вокруг обложки" title="Кольцо вокруг обложки"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></button>
+        </div>
+        <div class="vol">
+          <button type="button" class="vstep" id="volDown" aria-label="Тише"><svg class="i" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button type="button" id="mute" aria-label="Выключить звук">
+            <svg class="i" viewBox="0 0 24 24" id="volIcon"></svg>
+          </button>
+          <output id="volOut">60%</output>
+          <button type="button" class="vstep" id="volUp" aria-label="Громче"><svg class="i" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
     </div>
-    <div class="stats"><span>Сессии:</span><span class="dots" id="dots"></span></div>
-    <p class="hint"><kbd>Пробел</kbd> — старт / пауза</p>
   </main>
+  <div class="footer">
+    <button type="button" id="videoToggle">Выключить видео</button>
+  </div>
+  <div class="gate" id="gate">
+    <button type="button" id="gateBtn">
+      <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg></span>
+      Включить радио
+    </button>
+  </div>
+  <div class="empty" id="empty" role="status">Треки не найдены: добавьте mp3 в папку tracks/ и впишите их в tracks.js</div>
+  <audio id="audio" preload="auto"></audio>
+  <script src="tracks.js"></script>
   <script>
-    const DURATIONS = { focus: 25 * 60, short: 5 * 60, long: 15 * 60 };
-    const COLORS = { focus: ['#3ee8b5', '#3ec3e8'], short: ['#3ec3e8', '#7a5cff'], long: ['#b05cff', '#ff5cae'] };
-    const CIRC = 2 * Math.PI * 112;
     const $ = (id) => document.getElementById(id);
+    const audio = $('audio');
+    const tracks = (window.TRACKS || []).slice();
+    const ICON_ON = '<path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    const ICON_OFF = '<path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    const titleOf = (f) => f.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+    const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    let queue = [];
+    let pos = -1;
+    let wantPlay = true;
+    const nextQueue = (avoid) => {
+      queue = shuffle(tracks.slice());
+      if (avoid && queue.length > 1 && queue[0] === avoid) queue.push(queue.shift());
+      pos = -1;
+    };
+    const setTitle = (text) => {
+      const t = $('title');
+      const span = $('titleText');
+      span.textContent = text;
+      t.classList.remove('fade', 'marquee');
+      void t.offsetWidth;
+      t.classList.add('fade');
+      if (span.offsetWidth > t.clientWidth) {
+        const shift = span.offsetWidth - t.clientWidth + 16;
+        t.style.setProperty('--shift', shift + 'px');
+        t.style.setProperty('--dur', Math.max(4, shift / 25) + 's');
+        t.classList.add('marquee');
+      }
+      document.title = text + ' · Lofi Radio';
+      if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: text, artist: 'Lofi Radio' });
+    };
+    const loadNext = () => {
+      if (!tracks.length) return;
+      if (pos + 1 >= queue.length) nextQueue(queue[queue.length - 1]);
+      pos += 1;
+      const file = queue[pos];
+      audio.src = 'tracks/' + encodeURIComponent(file).replace(/%2F/g, '/');
+      setTitle(titleOf(file));
+      return audio.play();
+    };
+    const setPlaying = (on) => document.body.classList.toggle('playing', on);
+    const start = () => {
+      $('gate').classList.remove('show');
+      wantPlay = true;
+      if (!audio.src) { loadNext(); return; }
+      audio.play();
+    };
+    $('play').addEventListener('click', () => {
+      if (audio.paused) { start(); } else { wantPlay = false; audio.pause(); }
+    });
+    $('gateBtn').addEventListener('click', start);
+    audio.addEventListener('play', () => setPlaying(true));
+    audio.addEventListener('pause', () => setPlaying(false));
+    audio.addEventListener('ended', loadNext);
+    audio.addEventListener('error', () => { if (tracks.length > 1) setTimeout(loadNext, 600); });
+    let curVol = 60;
     const bar = $('bar');
-    bar.style.strokeDasharray = CIRC;
-
-    let mode = 'focus';
-    let total = DURATIONS.focus;
-    let left = total;
-    let endAt = 0;
-    let timer = null;
-    let done = Number(localStorage.getItem('af-done') || 0) % 4;
-
-    const fmt = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-
-    const render = () => {
-      $('time').textContent = fmt(left);
-      bar.style.strokeDashoffset = CIRC * (1 - left / total);
-      document.title = (timer ? fmt(left) + ' · ' : '') + 'Aurora Focus';
-      $('toggle').textContent = timer ? 'Пауза' : (left < total ? 'Продолжить' : 'Старт');
-      $('dots').innerHTML = [0, 1, 2, 3].map((i) => '<i class="' + (i < done ? 'on' : '') + '"></i>').join('');
+    const paintVol = () => {
+      const off = curVol === 0 || audio.muted;
+      $('volIcon').innerHTML = off ? ICON_OFF : ICON_ON;
+      $('fill').style.width = curVol + '%';
+      bar.classList.toggle('muted', audio.muted);
+      bar.setAttribute('aria-valuenow', curVol);
+      $('mute').setAttribute('aria-label', audio.muted ? 'Включить звук' : 'Выключить звук');
     };
-
-    const stop = () => { clearInterval(timer); timer = null; };
-
-    const setMode = (m) => {
-      stop();
-      mode = m;
-      total = left = DURATIONS[m];
-      document.body.dataset.mode = m;
-      $('g1').setAttribute('stop-color', COLORS[m][0]);
-      $('g2').setAttribute('stop-color', COLORS[m][1]);
-      document.querySelectorAll('.modes button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-      render();
+    const setVol = (v) => {
+      curVol = Math.max(0, Math.min(100, Math.round(v)));
+      audio.volume = curVol / 100;
+      $('volOut').textContent = curVol + '%';
+      paintVol();
+      localStorage.setItem('lofi-vol', curVol);
     };
-
-    const beep = () => {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [660, 880, 1320].forEach((f, i) => {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.frequency.value = f;
-          g.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.18);
-          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.18 + 0.4);
-          o.connect(g).connect(ctx.destination);
-          o.start(ctx.currentTime + i * 0.18);
-          o.stop(ctx.currentTime + i * 0.18 + 0.4);
-        });
-      } catch (e) { /* звук недоступен */ }
+    const volFromEvent = (e) => {
+      const r = bar.getBoundingClientRect();
+      audio.muted = false;
+      setVol(((e.clientX - r.left) / r.width) * 100);
     };
-
-    const finish = () => {
-      stop();
-      beep();
-      if (mode === 'focus') {
-        done += 1;
-        localStorage.setItem('af-done', done);
-        const long = done >= 4;
-        if (long) { done = 0; localStorage.setItem('af-done', 0); }
-        setMode(long ? 'long' : 'short');
-      } else {
-        setMode('focus');
+    let dragging = false;
+    bar.addEventListener('pointerdown', (e) => { dragging = true; bar.setPointerCapture(e.pointerId); volFromEvent(e); });
+    bar.addEventListener('pointermove', (e) => { if (dragging) volFromEvent(e); });
+    const endDrag = () => { dragging = false; };
+    bar.addEventListener('pointerup', endDrag);
+    bar.addEventListener('pointercancel', endDrag);
+    bar.addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 5, ArrowUp: 5, ArrowLeft: -5, ArrowDown: -5 }[e.key];
+      if (d === undefined) return;
+      e.preventDefault();
+      audio.muted = false;
+      setVol(curVol + d);
+    });
+    const step = (d) => { audio.muted = false; setVol(curVol + d); };
+    $('volDown').addEventListener('click', () => step(-10));
+    $('volUp').addEventListener('click', () => step(10));
+    $('mute').addEventListener('click', () => {
+      audio.muted = !audio.muted;
+      paintVol();
+    });
+    const saved = Number(localStorage.getItem('lofi-vol'));
+    const initVol = localStorage.getItem('lofi-vol') === null ? 60 : saved;
+    setVol(initVol);
+    const canvas = $('viz');
+    const g = canvas.getContext('2d');
+    const MODES = ['wave', 'bars', 'off'];
+    const MODE_LABELS = { wave: 'волна', bars: 'столбики', off: 'выключена' };
+    let vizMode = localStorage.getItem('lofi-viz') || 'wave';
+    if (!MODES.includes(vizMode)) vizMode = 'wave';
+    let ringOn = localStorage.getItem('lofi-ring') !== '0';
+    let analyser = null;
+    let freq = null;
+    let raf = 0;
+    let W = 0;
+    let H = 0;
+    const smooth = [];
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    window.addEventListener('resize', resize);
+    resize();
+    const initAudio = () => {
+      if (analyser) return;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.75;
+      const src = ctx.createMediaElementSource(audio);
+      src.connect(analyser);
+      analyser.connect(ctx.destination);
+      freq = new Uint8Array(analyser.frequencyBinCount);
+      audio.addEventListener('play', () => { if (ctx.state === 'suspended') ctx.resume(); });
+    };
+    const bands = (n) => {
+      analyser.getByteFrequencyData(freq);
+      const usable = Math.floor(freq.length * 0.7);
+      const out = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const a = Math.floor(Math.pow(i / n, 1.7) * usable);
+        const b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.7) * usable));
+        let sum = 0;
+        for (let k = a; k < b; k++) sum += freq[k];
+        const v = sum / (b - a) / 255;
+        smooth[i] = (smooth[i] || 0) * 0.55 + v * 0.45;
+        out[i] = smooth[i];
+      }
+      return out;
+    };
+    const drawWave = () => {
+      const n = 64;
+      const v = bands(n);
+      const maxH = H * 0.42;
+      const yAt = (i) => H - Math.pow(v[i], 1.4) * maxH - 4;
+      g.beginPath();
+      g.moveTo(0, H);
+      g.lineTo(0, yAt(0));
+      for (let i = 1; i < n; i++) {
+        const x = (i / (n - 1)) * W;
+        const px = ((i - 0.5) / (n - 1)) * W;
+        g.quadraticCurveTo(px, (yAt(i - 1) + yAt(i)) / 2, x, yAt(i));
+      }
+      g.lineTo(W, H);
+      g.closePath();
+      const grad = g.createLinearGradient(0, H - maxH, 0, H);
+      grad.addColorStop(0, 'rgba(217, 83, 79, 0.75)');
+      grad.addColorStop(1, 'rgba(217, 83, 79, 0.25)');
+      g.fillStyle = grad;
+      g.fill();
+    };
+    const drawBars = () => {
+      const w = 6;
+      const n = Math.max(24, Math.floor(W / (w + 4)));
+      const v = bands(n);
+      const r = $('bar').getBoundingClientRect();
+      const cy = r.top + r.height / 2;
+      const maxH = Math.min(H * 0.22, 190);
+      g.fillStyle = 'rgba(217, 83, 79, 0.6)';
+      for (let i = 0; i < n; i++) {
+        const h = Math.max(3, Math.pow(v[i], 1.3) * maxH);
+        g.fillRect((i / n) * W, cy - h, w, h * 2);
       }
     };
-
-    const tick = () => {
-      left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
-      render();
-      if (left <= 0) finish();
+    const drawRing = () => {
+      const c = $('cover').getBoundingClientRect();
+      const cx = c.left + c.width / 2;
+      const cy = c.top + c.height / 2;
+      const r0 = c.width / 2 + 6;
+      const n = 72;
+      const v = bands(n / 2);
+      const maxH = Math.max(6, Math.min(c.width * 0.32, (W - c.width) / 2 - 12));
+      g.lineCap = 'round';
+      g.lineWidth = Math.max(3, c.width * 0.018);
+      g.strokeStyle = 'rgba(255, 235, 230, 0.8)';
+      const spin = performance.now() / 12000;
+      for (let i = 0; i < n; i++) {
+        const k = i < n / 2 ? i : n - 1 - i;
+        const h = 3 + Math.pow(v[k], 1.3) * maxH;
+        const a = (i / n) * Math.PI * 2 + spin - Math.PI / 2;
+        g.beginPath();
+        g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+        g.lineTo(cx + Math.cos(a) * (r0 + h), cy + Math.sin(a) * (r0 + h));
+        g.stroke();
+      }
     };
-
-    const toggle = () => {
-      if (timer) { stop(); render(); return; }
-      endAt = Date.now() + left * 1000;
-      timer = setInterval(tick, 250);
-      render();
+    const frame = () => {
+      raf = 0;
+      g.clearRect(0, 0, W, H);
+      if (!analyser || audio.paused || document.hidden) return;
+      if (vizMode === 'wave') drawWave();
+      else if (vizMode === 'bars') drawBars();
+      if (ringOn) drawRing();
+      raf = requestAnimationFrame(frame);
     };
-
-    $('toggle').addEventListener('click', toggle);
-    $('reset').addEventListener('click', () => setMode(mode));
-    $('skip').addEventListener('click', finish);
-    document.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); toggle(); }
+    const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+    audio.addEventListener('play', () => { initAudio(); kick(); });
+    document.addEventListener('visibilitychange', kick);
+    const syncButtons = () => {
+      $('vizBtn').dataset.on = String(vizMode !== 'off');
+      $('vizBtn').setAttribute('aria-label', 'Визуализация: ' + MODE_LABELS[vizMode]);
+      $('ringBtn').dataset.on = String(ringOn);
+    };
+    $('vizBtn').addEventListener('click', () => {
+      vizMode = MODES[(MODES.indexOf(vizMode) + 1) % MODES.length];
+      localStorage.setItem('lofi-viz', vizMode);
+      syncButtons();
+      kick();
     });
-    render();
+    $('ringBtn').addEventListener('click', () => {
+      ringOn = !ringOn;
+      localStorage.setItem('lofi-ring', ringOn ? '1' : '0');
+      syncButtons();
+      kick();
+    });
+    syncButtons();
+    const video = $('bg');
+    const setVideo = (on) => {
+      document.body.classList.toggle('video-off', !on);
+      $('videoToggle').textContent = on ? 'Выключить видео' : 'Включить видео';
+      if (on) video.play().catch(() => {}); else video.pause();
+      localStorage.setItem('lofi-video', on ? '1' : '0');
+    };
+    $('videoToggle').addEventListener('click', () => setVideo(document.body.classList.contains('video-off')));
+    if (localStorage.getItem('lofi-video') === '0') setVideo(false);
+    document.addEventListener('visibilitychange', () => {
+      if (document.body.classList.contains('video-off')) return;
+      if (document.hidden) video.pause(); else video.play().catch(() => {});
+    });
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', start);
+      navigator.mediaSession.setActionHandler('pause', () => { wantPlay = false; audio.pause(); });
+    }
+    if (!tracks.length) {
+      $('empty').classList.add('show');
+      setTitle('Lofi Radio');
+    } else {
+      nextQueue();
+      const attempt = loadNext();
+      if (attempt) attempt.catch(() => $('gate').classList.add('show'));
+    }
   </script>
 </body>
 </html>
