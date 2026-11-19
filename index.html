@@ -208,6 +208,7 @@
     audio.addEventListener('ended', loadNext);
     audio.addEventListener('error', () => { if (tracks.length > 1) setTimeout(loadNext, 600); });
     let curVol = 60;
+    let gain = null;
     const bar = $('bar');
     const paintVol = () => {
       const off = curVol === 0 || audio.muted;
@@ -217,9 +218,17 @@
       bar.setAttribute('aria-valuenow', curVol);
       $('mute').setAttribute('aria-label', audio.muted ? 'Включить звук' : 'Выключить звук');
     };
+    const applyVol = () => {
+      if (gain) {
+        gain.gain.value = audio.muted ? 0 : curVol / 100;
+        audio.volume = 1;
+      } else {
+        audio.volume = curVol / 100;
+      }
+    };
     const setVol = (v) => {
       curVol = Math.max(0, Math.min(100, Math.round(v)));
-      audio.volume = curVol / 100;
+      applyVol();
       $('volOut').textContent = curVol + '%';
       paintVol();
       localStorage.setItem('lofi-vol', curVol);
@@ -247,6 +256,7 @@
     $('volUp').addEventListener('click', () => step(10));
     $('mute').addEventListener('click', () => {
       audio.muted = !audio.muted;
+      applyVol();
       paintVol();
     });
     const saved = Number(localStorage.getItem('lofi-vol'));
@@ -284,8 +294,11 @@
       analyser.fftSize = 1024;
       analyser.smoothingTimeConstant = 0.75;
       const src = ctx.createMediaElementSource(audio);
+      gain = ctx.createGain();
       src.connect(analyser);
-      analyser.connect(ctx.destination);
+      analyser.connect(gain);
+      gain.connect(ctx.destination);
+      applyVol();
       freq = new Uint8Array(analyser.frequencyBinCount);
       audio.addEventListener('play', () => { if (ctx.state === 'suspended') ctx.resume(); });
     };
